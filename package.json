@@ -1,0 +1,39 @@
+{
+  "name": "altran-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "WEB_DOMAIN=http://localhost:8080 nyc mocha helperFunctions/**/*.test.js app/**/*.test.js",
+    "test:debug": "WEB_DOMAIN=http://localhost:8080 mocha debug helperFunctions/**/*.test.js app/**/*.test.js",
+    "itest": "WEB_DOMAIN=http://localhost:8080 ITEST=true nyc mocha --timeout 10000 app/**/*.test.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "express-winston": "^2.1.0",
+    "glob": "^7.1.2",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
+    "swagger-jsdoc": "^1.9.7",
+    "winston": "^2.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chakram": "^1.5.0",
+    "mocha": "^3.2.0",
+    "mock-require": "^2.0.2",
+    "nock": "^9.0.17",
+    "nyc": "^11.2.1",
+    "swagger-ui-express": "^2.0.7"
+  },
+  "author": "Carlos Illobre",
+  "license": "ISC",
+  "nyc": {
+    "include": [
+			"helperFunctions/**/*.js",
+      "app/api/**/*.js"
+    ]
+  }
+}

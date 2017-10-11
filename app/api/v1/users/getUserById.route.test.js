@@ -1,0 +1,82 @@
+const chakram = require('chakram')
+const expect = chakram.expect
+const nock = require('nock')
+const mockRequire = require('mock-require')
+const clientsUri = require(`${process.env.PWD}/externalServices.js`).clients
+const getHost = require(`${process.env.PWD}/helperFunctions/getHost.js`)
+const getRoute = require(`${process.env.PWD}/helperFunctions/getRoute.js`)
+
+const url = `${process.env.WEB_DOMAIN}/api/v1/users`
+
+const clients = [
+	{  
+		id: "a0ece5db-cd14-4f21-812f-966633e7be86",
+		name: "Britney",
+		email: "britneyblankenship@quotezart.com",
+		role: "admin"
+	},{  
+		id: "e8fd159b-57c4-4d36-9bd7-a59ca13057bb",
+		name: "Manning",
+		email: "manningblankenship@quotezart.com",
+		role: "admin"
+	},{  
+		id: "a3b8d425-2b60-4ad7-becc-bedf2ef860bd",
+		name: "Barnett",
+		email: "barnettblankenship@quotezart.com",
+		role: "user"
+	}
+]
+
+const client = clients[1]
+
+describe('GET v1/users/:id', () => {
+
+  before(() => {
+		mockRequire(`${process.env.PWD}/logger.js`, {
+			info: (message) => {},
+			error: (message) => {}
+		})
+		require(`${process.env.PWD}/server.js`)
+	})
+
+	after(() => mockRequire.stop(`${process.env.PWD}/logger.js`))
+
+	beforeEach(() =>
+		!process.env.ITEST && nock(getHost(clientsUri), { allowUnmocked: true })
+		.get(getRoute(clientsUri))
+		.reply(200, { clients })
+	)
+
+	afterEach(() =>	nock.cleanAll())
+
+  it("Get user data filtered by user id",	() =>
+		chakram.get(`${url}/${client.id}`)
+		.then(response => {
+			expect(response).to.have.status(200)
+			expect(response).to.comprise.of.json(client)  
+		})
+	)
+
+	it("Error 404 if the user's id does not exist", () =>
+		chakram.get(`${url}/xxx`)
+		.then(response => {
+			expect(response).to.have.status(404)
+		})
+	)
+
+	it("Error 500 if the clients service is down", () => {
+
+		nock.cleanAll()
+
+		nock(getHost(clientsUri), { allowUnmocked: true })
+		.get(getRoute(clientsUri))
+		.reply(500)
+
+		return chakram.get(`${url}/xxx`)
+		.then(response => {
+			expect(response).to.have.status(500)
+		})
+
+	})
+
+})
